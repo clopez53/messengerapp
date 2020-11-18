@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Avatar, IconButton } from "@material-ui/core";
-import { AttachFile, InsertEmoticon, Mic, MoreVert, SearchOutlined } from "@material-ui/icons";
+import { Avatar, IconButton, makeStyles } from "@material-ui/core";
+import { PhotoCamera, InsertEmoticon, Mic, MoreVert, SearchOutlined } from "@material-ui/icons";
 import { useParams } from "react-router-dom";
 import "./Chat.css";
 import db from "./firebase";
 import { useStateValue } from "./StateProvider";
 import firebase from "firebase";
+
+const useStyles = makeStyles(() => ({
+    input: {
+      display: 'none',
+    },
+  }));
 
 function Chat() {
     const [input, setInput] = useState("");
@@ -14,6 +20,8 @@ function Chat() {
     const [roomName, setRoomName] = useState("");
     const [messages, setMessages] = useState([]);
     const [{ user }, dispatch] = useStateValue();
+    const classes = useStyles();
+    const [baseImage, setBaseImage] = useState("");
 
     useEffect(() => {
         if (roomId) {
@@ -43,9 +51,39 @@ function Chat() {
             message: input,
             name: user.displayName,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            image: baseImage,
         });
 
         setInput("");
+        setBaseImage("");
+    };
+
+    const uploadImage = async (e) => {
+        const file = e.target.files[0];
+        const base64 = await convertBase64(file);
+        
+        db.collection("rooms").doc(roomId).collection("messages").add({
+            message: "image...",
+            name: user.displayName,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            image: base64,
+        });
+    };
+
+    const convertBase64 = (file) => {
+
+        return new Promise((resolve, reject) => {
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(file);
+
+            fileReader.onload = () => {
+                resolve(fileReader.result);
+            };
+
+            fileReader.onerror = (error) => {
+                reject(error);
+            };
+        });
     };
 
     return (
@@ -68,7 +106,12 @@ function Chat() {
                         <SearchOutlined />
                     </IconButton>
                     <IconButton>
-                        <AttachFile />
+                        <input accept="image/*,video/*,audio/*" className={classes.input} id="icon-button-file" type="file" onChange={(e) => {
+                            uploadImage(e);
+                        }} />
+                        <label htmlFor="icon-button-file">
+                        <PhotoCamera />
+                        </label>
                     </IconButton>
                     <IconButton>
                         <MoreVert />
@@ -80,12 +123,13 @@ function Chat() {
                 {messages.map(message => (
                     <p className={`chat__message ${message.name === user.displayName && "chat__receiver"}`}>
                     <span className="chat__name">{message.name}</span>
-                    {message.message}
+                    {message.image ? <img src={message.image} height="100px" /> : <>{message.message}</>}
+                    
                     <span className="chat__timestamp">
                         {new Date(message.timestamp?.toDate()).toUTCString()}
                     </span>
                     </p>
-                ))}
+                ))} 
             </div>
 
             <div className="chat__footer">
@@ -95,8 +139,9 @@ function Chat() {
                         value={input} 
                         onChange={(e) => setInput(e.target.value)} 
                         type="text" 
-                        placeholder="Type a message" 
+                        placeholder="Type a message"
                     />
+                    
                     <button onClick={sendMessage} type="submit">Send a message</button>
                 </form>
                 <Mic />
