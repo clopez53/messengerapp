@@ -61,7 +61,7 @@ function Chat() {
     const uploadImage = async (e) => {
         const file = e.target.files[0];
         const base64 = await convertBase64(file);
-        
+
         db.collection("rooms").doc(roomId).collection("messages").add({
             message: "image...",
             name: user.displayName,
@@ -75,7 +75,7 @@ function Chat() {
         return new Promise((resolve, reject) => {
             const fileReader = new FileReader();
             fileReader.readAsDataURL(file);
-
+            
             fileReader.onload = () => {
                 resolve(fileReader.result);
             };
