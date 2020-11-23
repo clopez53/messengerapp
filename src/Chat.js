@@ -51,23 +51,49 @@ function Chat() {
             message: input,
             name: user.displayName,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            image: baseImage,
         });
 
         setInput("");
         setBaseImage("");
     };
 
-    const uploadImage = async (e) => {
+    const uploadFile = async (e) => {
         const file = e.target.files[0];
         const base64 = await convertBase64(file);
 
-        db.collection("rooms").doc(roomId).collection("messages").add({
-            message: "image...",
-            name: user.displayName,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            image: base64,
-        });
+        const fileType = file.type;
+
+        // specify what are the possible file types image/jpeg, image/jpg, image/png
+        if (fileType.indexOf("image") !== -1) {
+            db.collection("rooms").doc(roomId).collection("messages").add({
+                message: "image",
+                name: user.displayName,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                image: base64,
+                fileType: fileType,
+            });
+        } 
+
+        // audio/wav, audio/mp3
+        if (fileType.indexOf("audio") !== -1) {
+            db.collection("rooms").doc(roomId).collection("messages").add({
+                message: "audio",
+                name: user.displayName,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                audio: base64,
+                fileType: fileType,
+            });
+        }
+
+        if (fileType.indexOf("video") !== -1) {
+            db.collection("rooms").doc(roomId).collection("messages").add({
+                message: "",
+                name: user.displayName,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                video: base64,
+                fileType: fileType,
+            });
+        }
     };
 
     const convertBase64 = (file) => {
@@ -106,8 +132,12 @@ function Chat() {
                         <SearchOutlined />
                     </IconButton>
                     <IconButton>
-                        <input accept="image/*,video/*,audio/*" className={classes.input} id="icon-button-file" type="file" onChange={(e) => {
-                            uploadImage(e);
+                        <input accept="image/*,video/*,audio/*" 
+                               className={classes.input} 
+                               id="icon-button-file" 
+                               type="file" 
+                               onChange={(e) => {
+                            uploadFile(e);
                         }} />
                         <label htmlFor="icon-button-file">
                         <PhotoCamera />
@@ -123,7 +153,10 @@ function Chat() {
                 {messages.map(message => (
                     <p className={`chat__message ${message.name === user.displayName && "chat__receiver"}`}>
                     <span className="chat__name">{message.name}</span>
-                    {message.image ? <img src={message.image} height="100px" /> : <>{message.message}</>}
+                    {message.image ? <img src={message.image} height="100px" alt="" /> : 
+                    message.audio ? <audio controls><source src={message.audio} type={message.fileType}></source></audio> : 
+                    message.video ? <video width="240" height="180" controls><source src={message.video} type={message.fileType}></source></video> :
+                    <>{message.message}</>}
                     
                     <span className="chat__timestamp">
                         {new Date(message.timestamp?.toDate()).toUTCString()}
