@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Avatar, IconButton, makeStyles } from "@material-ui/core";
-import { PhotoCamera, InsertEmoticon, Mic, MoreVert, SearchOutlined } from "@material-ui/icons";
+import { PhotoCamera, InsertEmoticon, Mic, MoreVert, SearchOutlined, Stop } from "@material-ui/icons";
 import { useParams } from "react-router-dom";
 import "./Chat.css";
 import db from "./firebase";
 import { useStateValue } from "./StateProvider";
 import firebase from "firebase";
+import { ReactMic } from "react-mic";
 
 const useStyles = makeStyles(() => ({
     input: {
@@ -21,8 +22,8 @@ function Chat() {
     const [messages, setMessages] = useState([]);
     const [{ user }, dispatch] = useStateValue();
     const classes = useStyles();
-    const [baseImage, setBaseImage] = useState("");
-
+    const [record, setRecord] = useState(false);
+    
     useEffect(() => {
         if (roomId) {
             db.collection("rooms")
@@ -54,7 +55,6 @@ function Chat() {
         });
 
         setInput("");
-        setBaseImage("");
     };
 
     const uploadFile = async (e) => {
@@ -87,7 +87,7 @@ function Chat() {
 
         if (fileType.indexOf("video") !== -1) {
             db.collection("rooms").doc(roomId).collection("messages").add({
-                message: "",
+                message: "video",
                 name: user.displayName,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 video: base64,
@@ -111,6 +111,28 @@ function Chat() {
             };
         });
     };
+
+    const onStop = async (data) => {
+        console.log(data);
+        const recordingFile = data.blob;
+        const base64 = await convertBase64(recordingFile);
+
+        const typeRecording = data.blob.type;
+
+        if (typeRecording.indexOf("audio") !== -1) {
+            db.collection("rooms").doc(roomId).collection("messages").add({
+                message: "recording",
+                name: user.displayName,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                recording: base64,
+                fileType: typeRecording,
+            });
+        }
+    }  
+    
+    const onClickMic = () => {
+        setRecord(!record);
+    }
 
     return (
         <div className="chat">
@@ -156,6 +178,7 @@ function Chat() {
                     {message.image ? <img src={message.image} height="100px" alt="" /> : 
                     message.audio ? <audio controls><source src={message.audio} type={message.fileType}></source></audio> : 
                     message.video ? <video width="240" height="180" controls><source src={message.video} type={message.fileType}></source></video> :
+                    message.recording ? <audio controls><source src={message.recording} type={message.fileType}></source></audio> :
                     <>{message.message}</>}
                     
                     <span className="chat__timestamp">
@@ -177,7 +200,16 @@ function Chat() {
                     
                     <button onClick={sendMessage} type="submit">Send a message</button>
                 </form>
-                <Mic />
+
+                <ReactMic
+                    record={record}
+                    className="sound-wave"
+                    onStop={(data) => onStop(data)} 
+                />
+
+                <IconButton onClick={onClickMic}>
+                    {record ? <Stop /> : <Mic /> }
+                </IconButton>
             </div>
         </div>
     )

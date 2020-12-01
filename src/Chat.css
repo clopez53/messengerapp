@@ -95,3 +95,7 @@
     padding: 10px;
     color: gray;
 }
+
+.sound-wave {
+    display: none;
+}
