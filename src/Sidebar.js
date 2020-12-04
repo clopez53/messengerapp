@@ -11,6 +11,7 @@ function Sidebar() {
     const [{ user }, dispatch] = useStateValue();
 
     useEffect(() => {
+        // Real time listener for capturing the rooms from the database
         const unsubscribe = db.collection('rooms').onSnapshot((snapshot) => 
             setRooms(
                 snapshot.docs.map(doc => ({
@@ -19,7 +20,10 @@ function Sidebar() {
                 }))
             )
         );
-
+        
+        // This is a clean up function, whenever the user unmounts
+        // it will detach from the real time listener above after 
+        // it is done using it
         return () => {
             unsubscribe();
         }

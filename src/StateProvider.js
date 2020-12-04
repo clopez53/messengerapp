@@ -6,6 +6,7 @@ export const StateContext = createContext();
 // Data Layer is the StateProvider
 // Higher Order Component ({ reducer, initialState, children })
 // children is actually the App child in index.js
+// State provider and everything in it lets us set up the data layer
 export const StateProvider = ({ reducer, initialState, children }) => (
     <StateContext.Provider value ={useReducer (reducer, initialState)}>
         {children}

@@ -39,10 +39,12 @@ function Chat() {
               );
         }
     }, [roomId]);
+    // roomId is a dependancy so we usually add it here when we use a variable
 
     useEffect(() => {
         setSeed(Math.floor(Math.random() * 5000))
     }, [roomId]);
+    // having the roomId here helps change everytime a different room is chosen
 
     const sendMessage = (e) => {
         e.preventDefault();
@@ -174,16 +176,16 @@ function Chat() {
             <div className="chat__body">
                 {messages.map(message => (
                     <p className={`chat__message ${message.name === user.displayName && "chat__receiver"}`}>
-                    <span className="chat__name">{message.name}</span>
-                    {message.image ? <img src={message.image} height="100px" alt="" /> : 
-                    message.audio ? <audio controls><source src={message.audio} type={message.fileType}></source></audio> : 
-                    message.video ? <video width="240" height="180" controls><source src={message.video} type={message.fileType}></source></video> :
-                    message.recording ? <audio controls><source src={message.recording} type={message.fileType}></source></audio> :
-                    <>{message.message}</>}
-                    
-                    <span className="chat__timestamp">
-                        {new Date(message.timestamp?.toDate()).toUTCString()}
-                    </span>
+                        <span className="chat__name">{message.name}</span>
+                            {message.image ? <img src={message.image} height="100px" alt="" /> : 
+                            message.audio ? <audio controls><source src={message.audio} type={message.fileType}></source></audio> : 
+                            message.video ? <video width="240" height="180" controls><source src={message.video} type={message.fileType}></source></video> :
+                            message.recording ? <audio controls><source src={message.recording} type={message.fileType}></source></audio> :
+                            <>{message.message}</>}
+                        
+                        <span className="chat__timestamp">
+                            {new Date(message.timestamp?.toDate()).toUTCString()}
+                        </span>
                     </p>
                 ))} 
             </div>

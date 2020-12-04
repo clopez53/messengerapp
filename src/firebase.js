@@ -12,9 +12,13 @@ const firebaseConfig = {
     measurementId: "G-J69HPLLSWJ"
 };
 
+
 const firebaseApp = firebase.initializeApp(firebaseConfig);
+// Access to the firestore instance, gets database 
 const db = firebaseApp.firestore();
+// this is access to the authentication
 const auth = firebase.auth();
+// We will use this when we want to have access to Google Authentication
 const provider = new firebase.auth.GoogleAuthProvider();
 
 export { auth, provider };

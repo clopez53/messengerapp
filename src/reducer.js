@@ -7,6 +7,7 @@ export const initialState = {
 
 // These are the actions where we can push info into the data layer
 // For example when we sign in, we go ahead and push this user into the data layer
+// pushes this user into the data layer
 export const actionTypes = {
     SET_USER: "SET_USER",
 };
